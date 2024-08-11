@@ -1,165 +1,86 @@
-#include <Keypad.h>
+Router(config)#hostname R1
+R1(config)#line console 0
+R1(config-line)#password 1234
+R1(config-line)#login
+R1(config-line)#exit
+R1(config)#enable secret cisco
+R1(config)#ip domain-name nst21022.com
+R1(config)#username root secret cisco
+R1(config)#crypto key generate rsa
+The name for the keys will be: R1.nst21022.com
+Choose the size of the key modulus in the range of 360 to 4096 for your
+  General Purpose Keys. Choosing a key modulus greater than 512 may take
+  a few minutes.
 
-#include <LiquidCrystal_I2C.h>
+How many bits in the modulus [512]: 512
+% Generating 512 bit RSA keys, keys will be non-exportable...[OK]
 
-#define Password_Length 5
-#include <Servo.h>
+R1(config)#line vty 0 15
+*Mar 1 0:8:18.441: RSA key size needs to be at least 768 bits for ssh version 2
+*Mar 1 0:8:18.444: %SSH-5-ENABLED: SSH 1.5 has been enabled
+R1(config-line)#transport input ssh
+R1(config-line)#login local
+R1(config-line)#exec-timeout 4
+R1(config)#service password-encryption
+R1(config)#banner motd #ghghjhj#
+R1(config)#int g0/0/0
+	
+R1(config-if)#ip add 192.168.1.1 255.255.255.0
+R1(config-if)#no sh
 
-const byte ROWS = 4;
-const byte COLS = 4;
+R1(config-if)# 
 
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
+vlan
 
-
-byte rowPins[ROWS] = {9, 8, 7, 6};
-byte colPins[COLS] = {5, 4, 3, 2};
-
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-
-
-
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-char Data[Password_Length];
-char Master[Password_Length] = "1234";
-byte data_count = 0, master_count = 0;
-char customKey;
-int num = 1;
-
-int LED_GREEN = 12;
-int LED_RED = 13;
-int BUZZER = 11;
-
-int servoPin=10;
-Servo servo1;
-
-void setup()
-{
-  lcd.init();  /*LCD display initialized*/
-  lcd.clear();     /*Clear LCD Display*/
-  lcd.backlight();      /*Turn ON LCD Backlight*/
-  Serial.begin(9600);
-
-
-  pinMode(LED_RED, OUTPUT);
-  pinMode(LED_GREEN, OUTPUT);
- 
-  servo1.attach(servoPin);
-}
-
-void loop()
-{
-  if(data_count < Password_Length-1){
-    lcd.setCursor(0,0);   /*Set cursor to Row 1*/
-    lcd.print("Enter Password"); /*print text on LCD*/
-    customKey = customKeypad.getKey();
-     if (customKey){
-    Data[data_count] = customKey;
-    lcd.setCursor(data_count,1);
-    lcd.print(Data[data_count]);
-    data_count++;
-    }
-  }
-
- 
-  if(data_count == Password_Length-1){
-    lcd.clear();
-
-    if(!strcmp(Data, Master)){
-     
-      lcd.print("CORRECT");
-      digitalWrite(12, HIGH);
-      tone(BUZZER, 100, 1000);
-      delay(2000);
-      servo1.write(0);
-   delay(5000);
-      servo1.write(90);
-      delay(5000);
-    }
-    else{
-      lcd.print("WRONG");
-      digitalWrite(13, HIGH);
-      tone(BUZZER, 100);
-      delay(100);
-      noTone(BUZZER);
-      tone(BUZZER, 220);  
-      delay(200);
-      num++;
-      data_count = 0;
-      delay(1000);
-      if(num == 4){
-        lcd.clear();
-        lcd.print("3x spatne");
-        delay(2000);
-        lcd.clear();
-        lcd.print("Blokuji");
-        delay(2000);
-        lcd.noDisplay();
-      }
-      digitalWrite(10, LOW);
-    }
- 
-  }
-
-}
+Switch(config)#vlan 10
+Switch(config-vlan)#name hr
+Switch(config-vlan)#vlan 20
+Switch(config-vlan)#name manegment
+Switch(config-vlan)#exit
+Switch(config)#int range f0/1-8
+Switch(config-if-range)#switchport mode access
+Switch(config-if-range)#switchport access vlan 10
+Switch(config-if-range)#int range f0/9-16
+Switch(config-if-range)#switchport mode access
+Switch(config-if-range)#switchport access vlan 20
+Switch(config)#int range g0/1
+Switch(config-if-range)#switchport mode trunk
 
 
-master 01
-void setup()
+R1(config)#int g0/0/0.10
+R1(config-subif)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0.10, changed state to up
 
-{
+R1(config-subif)#encapsulation dot1Q 10
+R1(config-subif)#ip add 192.168.1.1 255.255.255.0
+% 192.168.1.0 overlaps with GigabitEthernet0/0/0
+R1(config-subif)#int g0/0/0.20
+R1(config-subif)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0.20, changed state to up
 
-pinMode(2,INPUT_PULLUP ); // initialize the pushbutton pin as an input
+R1(config-subif)#encapsulation dot1Q 20
+R1(config-subif)#ip add 192.168.1.2 255.255.255.0
+% 192.168.1.0 overlaps with GigabitEthernet0/0/0
+R1(config-subif)#exit
+R1(config)#interface s0/1/0
+R1(config)#ip add 192.168.1.3 255.255.255.0.
 
-Serial.begin(9600); // start serial for output
+R1(config)#ip dhcp pool NET-10
+R1(dhcp-config)#no ip dhcp pool NET-10
+R1(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.10
+R1(config)#ip dhcp excluded-address 192.168.2.1 192.168.2.10
+R1(config)#ip dhcp pool NET-10
+R1(dhcp-config)#network 192.168.1.0 255.255.255.0
+R1(dhcp-config)#default-router 192.168.1.1
+R1(dhcp-config)#dns-server 192.168.100.2
+R1(dhcp-config)#
+R1(dhcp-config)#ip dhcp pool NET-20
+R1(dhcp-config)#default-router 192.168.2.1
+R1(dhcp-config)#default-router 192.168.2.1
+R1(dhcp-config)#dns-server 192.168.100.2
+Router(config)#int g0/0/0.20
+Router(config-subif)#ip helper-address 192.168.1.3
+Router(config-subif)#int g0/0/0.10
+Router(config-subif)#ip helper-address 192.168.1.3
+Router(config-subif)#no sh
 
-}
-
-void loop()
-
-{
-
-  if(digitalRead(2) == LOW){
-  Serial.write(1);
-  }else{
-  Serial.write(0);
-  }
- 
-delay(100);
-}
-
-slave 
-
-
-void setup()
-
-{
-Serial.begin(9600);
-  pinMode(9, OUTPUT);
-
-}
-
-
-void loop()
-
-{
-
-  if(Serial.available() > 0){
-  int val = Serial.read();
-   
-    if(val == 0){
-    digitalWrite(9,LOW);
-    }else{
-    digitalWrite(9,HIGH);
-    }
- 
-  }
-
-}
