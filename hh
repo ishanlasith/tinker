@@ -84,3 +84,130 @@ Router(config-subif)#int g0/0/0.10
 Router(config-subif)#ip helper-address 192.168.1.3
 Router(config-subif)#no sh
 
+show running-config
+show ip interface brief
+ssh -L root(use name) vlan ip (vlan wedadha beleemata)
+arp -a (command prompt wenath pc ekka MAC ip beleemata)
+
+ipv6 dhcp---------------------------------------------
+R1
+
+enable
+configure terminal
+
+hostname R1
+
+ipv6 unicast-routing
+
+interface g0/0/0
+ipv6 address 2001:db8:acad:2::1/64
+ipv6 address fe80::1 link-local 
+no shutdown
+exit
+
+
+interface g0/0/1
+ipv6 address 2001:db8:acad:1::1/64
+ipv6 address fe80::2 link-local 
+no shutdown
+exit
+
+ipv6 dhcp pool R1-STATELESS
+dns-server 2001:db8:acad::254
+domain-name stateless.com
+exit
+
+interface g0/0/1
+ipv6 nd other-config-flag
+ipv6 dhcp server R1-STATELESS
+exit
+
+ipv6 dhcp pool R2-STATEFUL
+address prefix 2001:db8:acad:3::/64
+dns-server 2001:db8:acad::254
+domain-name stateful.com
+exit
+
+interface g0/0/0
+ipv6 dhcp server R2-STATEFUL
+no shutdown
+exit
+
+copy running-config startup-config
+------------------------------------------------------------------------------------------
+R1
+-------------------------------------------------------------------------------------------
+
+enable
+configure terminal
+hostname R2
+
+ipv6 unicast-routing
+
+interface g0/0/0
+ipv6 address 2001:db8:acad:2::2/64
+ipv6 address fe80::3 link-local 
+no shutdown
+exit
+
+interface g0/0/1
+ipv6 address 2001:db8:acad:3::1/64
+ipv6 address fe80::4 link-local 
+no shutdown
+exit
+
+
+interface g0/0/1
+ipv6 nd managed-config-flag
+ipv6 dhcp relay destination 2001:db8:acad:2::1 g0/0/0
+no shutdown
+exit
+
+
+static routing ippv4 ipv6-----------------------------------------------
+ip route 0.0.0.0 0.0.0.0 10.1.1.2
+
+ip route 0.0.0.0 0.0.0.0 192.168.2.1 5
+
+ip route 192.168.1.0 255.255.255.0 10.1.1.2 <-g0/0/0
+
+ip route 192.168.2.0 255.255.255.0 10.1.1.2
+
+ip route 192.168.1.0 255.255.255.0 192.168.2.1 5
+
+ip route 192.168.2.0 255.255.255.0 192.168.2.1 5
+
+ipv6 route ::/0 2001:DB8:ACAD:4::2
+
+ipv6 route ::/0 2001:DB8:ACAD:2::1 5
+
+ipv6 route 2001:DB8:ACAD:1::/64 2001:DB8:ACAD:4::2
+
+ipv6 route 2001:DB8:ACAD:2::/64 2001:DB8:ACAD:4::2
+
+ipv6 route 2001:DB8:ACAD:1::/64 2001:DB8:ACAD:2::1 5
+
+ipv6 route 2001:DB8:ACAD:2::/64 2001:DB8:ACAD:2::1 5
+
+copy running-config startup-config
+
+
+wi-fi-----------------------------------------------
+
+Configure the Internet Port 
+the Internet Setup -> Basic Setup
+
+Wireless Settings
+Wireless -> Basic Wireless Settings
+
+wireless security
+Wireless -> Wireless Securit
+
+wi-fi on path
+config ->wirelass0->on
+
+change password
+Administration -> Management
+
+Command Prompt
+ipconfig /renew
