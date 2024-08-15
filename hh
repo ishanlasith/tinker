@@ -130,3 +130,20 @@ ip route 192.168.4.0 255.255.255.0 192.168.10.2
 ipv6 route 2008:db8:cafe:c::/64 2008:db8:abcd:a::2
 ipv6 route 2008:db8:cafe:d::/64 2008:db8:abcd:a::2
 
+ethanet channel--------------
+S1 
+int range f0/1-4
+channel-group 1 mode acteive
+exit
+
+vlan 10 
+name it
+int port-channe 1
+switchport access vlan 10
+switchport mode access
+exit
+
+S2
+int range f0/1-4
+channel-group 1 mode 
+exit
