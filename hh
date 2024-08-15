@@ -32,6 +32,10 @@ default-router 192.168.1.1
 dns-server 192.168.100.2
 exit
 
+R2 as a dhcp relay(heper)----
+it g0/0/0.40
+ip helper-addess 192.168.10.1
+
 
 vlan------------------------------------
 
